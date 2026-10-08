@@ -1,6 +1,33 @@
 #!/usr/bin/env nextflow
 // hash:sha256:65fe8500e23f30aabe331c40b8f5ee7a82547a20428ec7fde0ece8727fc4f960
 
+params.ecephys_url = 's3://aind-ephys-data/ecephys_713593_2024-02-08_14-10-37'
+
+// AIND sessions are staged per stream: each task gets only the zarr(s) its job reads, placed where the
+// relative paths embedded in job and recording JSONs expect them. Any other layout is staged whole.
+compressedRel = 'ecephys/ecephys_compressed'
+if (!file("${params.ecephys_url}/${compressedRel}").exists()) {
+	compressedRel = 'ecephys_compressed'
+}
+zarrStage = "capsule/data/ecephys_session/${compressedRel}/*"
+
+def zarrNames(obj) {
+	if (obj instanceof Map) {
+		return obj.collectMany { k, v ->
+			(k == 'folder_path' && v instanceof String && v.endsWith('.zarr')) ? [v.tokenize('/')[-1]] : zarrNames(v)
+		}
+	}
+	if (obj instanceof List) {
+		return obj.collectMany { zarrNames(it) }
+	}
+	return []
+}
+
+// a single-file output arrives as a bare path, several as a list
+def pick(files, Closure keep) {
+	(files instanceof List ? files : [files]).findAll(keep)
+}
+
 // capsule - Job Dispatch Ecephys
 process capsule_aind_ephys_job_dispatch_4 {
 	tag 'capsule-6237826'
@@ -584,33 +611,6 @@ process capsule_quality_control_collector_ecephys_14 {
 	"""
 	stub_capsule.sh quality_control_collector
 	"""
-}
-
-params.ecephys_url = 's3://aind-ephys-data/ecephys_713593_2024-02-08_14-10-37'
-
-// AIND sessions are staged per stream: each task gets only the zarr(s) its job reads, placed where the
-// relative paths embedded in job and recording JSONs expect them. Any other layout is staged whole.
-compressedRel = 'ecephys/ecephys_compressed'
-if (!file("${params.ecephys_url}/${compressedRel}").exists()) {
-	compressedRel = 'ecephys_compressed'
-}
-zarrStage = "capsule/data/ecephys_session/${compressedRel}/*"
-
-def zarrNames(obj) {
-	if (obj instanceof Map) {
-		return obj.collectMany { k, v ->
-			(k == 'folder_path' && v instanceof String && v.endsWith('.zarr')) ? [v.tokenize('/')[-1]] : zarrNames(v)
-		}
-	}
-	if (obj instanceof List) {
-		return obj.collectMany { zarrNames(it) }
-	}
-	return []
-}
-
-// a single-file output arrives as a bare path, several as a list
-def pick(files, Closure keep) {
-	(files instanceof List ? files : [files]).findAll(keep)
 }
 
 workflow {
