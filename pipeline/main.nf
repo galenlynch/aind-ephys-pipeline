@@ -40,6 +40,7 @@ def pick(files, Closure keep) {
 }
 
 // capsule - Job Dispatch Ecephys
+// Job Dispatch Ecephys: Code Ocean capsule v12.0, source https://github.com/AllenNeuralDynamics/aind-ephys-job-dispatch
 process capsule_aind_ephys_job_dispatch_4 {
 	tag 'capsule-6237826'
 	container "$REGISTRY_HOST/published/d75d79c4-8f21-4d17-83ec-13b2a43dcaa0:v12"
@@ -92,6 +93,7 @@ process capsule_aind_ephys_job_dispatch_4 {
 }
 
 // capsule - Preprocess Ecephys
+// Preprocess Ecephys: Code Ocean capsule v15.0, source https://github.com/AllenNeuralDynamics/aind-ephys-preprocessing
 process capsule_aind_ephys_preprocessing_1 {
 	tag 'capsule-0331265'
 	container "$REGISTRY_HOST/published/49b76676-d1f6-4202-9473-c763b2b83563:v15"
@@ -144,6 +146,7 @@ process capsule_aind_ephys_preprocessing_1 {
 }
 
 // capsule - NWB Packaging Ecephys
+// NWB Packaging Ecephys: Code Ocean capsule v14.0, source https://github.com/AllenNeuralDynamics/aind-ecephys-nwb
 process capsule_nwb_packaging_ecephys_capsule_12 {
 	tag 'capsule-3438484'
 	container "$REGISTRY_HOST/published/b16dfc92-eab4-425d-978f-0ba61632c413:v14"
@@ -197,6 +200,7 @@ process capsule_nwb_packaging_ecephys_capsule_12 {
 }
 
 // capsule - Spikesort Kilosort4 Ecephys
+// Spikesort Kilosort4 Ecephys: Code Ocean capsule v13.0, source https://github.com/AllenNeuralDynamics/aind-ephys-spikesort-kilosort4
 process capsule_spikesort_kilosort_4_ecephys_7 {
 	tag 'capsule-4110207'
 	container "$REGISTRY_HOST/published/3372ccfd-0388-4e1e-8c4f-46b470fcf871:v13"
@@ -250,6 +254,7 @@ process capsule_spikesort_kilosort_4_ecephys_7 {
 }
 
 // capsule - Postprocess Ecephys
+// Postprocess Ecephys: Code Ocean capsule v10.0, source https://github.com/AllenNeuralDynamics/aind-ephys-postprocessing
 process capsule_aind_ephys_postprocessing_5 {
 	tag 'capsule-4319008'
 	container "$REGISTRY_HOST/published/1639e98a-74dc-4b37-9464-1b6a3868c9b0:v10"
@@ -302,6 +307,7 @@ process capsule_aind_ephys_postprocessing_5 {
 }
 
 // capsule - Curate Ecephys
+// Curate Ecephys: Code Ocean capsule v9.0, source https://github.com/AllenNeuralDynamics/aind-ephys-curation
 process capsule_aind_ephys_curation_2 {
 	tag 'capsule-3565647'
 	container "$REGISTRY_HOST/published/da74428e-26f9-4f08-a9bf-898dfca44722:v9"
@@ -353,6 +359,7 @@ process capsule_aind_ephys_curation_2 {
 }
 
 // capsule - Visualize Ecephys
+// Visualize Ecephys: Code Ocean capsule v13.0, source https://github.com/AllenNeuralDynamics/aind-ephys-visualization
 process capsule_aind_ephys_visualization_6 {
 	tag 'capsule-6869873'
 	container "$REGISTRY_HOST/published/e7af8ddc-08ca-418b-9e36-8249e363404e:v13"
@@ -405,6 +412,7 @@ process capsule_aind_ephys_visualization_6 {
 }
 
 // capsule - Collect Results Ecephys
+// Collect Results Ecephys: Code Ocean capsule v15.0, source https://github.com/AllenNeuralDynamics/aind-ephys-results-collector
 process capsule_aind_ephys_results_collector_9 {
 	tag 'capsule-0338545'
 	container "$REGISTRY_HOST/published/5b7e48bb-8123-4b4c-b7bf-ebaa2de8555e:v15"
@@ -460,6 +468,7 @@ process capsule_aind_ephys_results_collector_9 {
 }
 
 // capsule - NWB Packaging Units
+// NWB Packaging Units: Code Ocean capsule v17.0, source https://github.com/AllenNeuralDynamics/aind-units-nwb
 process capsule_nwb_packaging_units_11 {
 	tag 'capsule-5841110'
 	container "$REGISTRY_HOST/published/b9333ffe-ae7c-4b67-882f-ea71054889dd:v17"
@@ -518,6 +527,7 @@ process capsule_nwb_packaging_units_11 {
 }
 
 // capsule - Quality Control Ecephys
+// Quality Control Ecephys: Code Ocean capsule v19.0, source https://github.com/AllenNeuralDynamics/aind-ephys-processing-qc
 process capsule_quality_control_ecephys_13 {
 	tag 'capsule-0625308'
 	container "$REGISTRY_HOST/published/56a55c84-3013-4683-be83-14d607d2cfe6:v19"
@@ -571,6 +581,7 @@ process capsule_quality_control_ecephys_13 {
 }
 
 // capsule - Quality Control Collector Ecephys
+// Quality Control Collector Ecephys: Code Ocean capsule v3.0, source https://github.com/AllenNeuralDynamics/aind-ephys-qc-collector
 process capsule_quality_control_collector_ecephys_14 {
 	tag 'capsule-8310834'
 	container "$REGISTRY_HOST/published/324399bc-41bd-43f2-8da4-954bd243973f:v3"
