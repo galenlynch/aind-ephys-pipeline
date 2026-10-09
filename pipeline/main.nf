@@ -3,6 +3,17 @@
 
 params.ecephys_url = 's3://aind-ephys-data/ecephys_713593_2024-02-08_14-10-37'
 
+// An unlocked main.nf gets no per-capsule App Panel args, so each step's settings live here as named flags
+// (the production pipeline's values); override any of them with --<param> on the nextflow command line.
+params.capsule_aind_ephys_job_dispatch_4_args = '--input aind --min-recording-duration -1'
+params.capsule_aind_ephys_preprocessing_1_args = '--denoising cmr --filter-type highpass --max-bad-channel-fraction 0.5 --motion compute --motion-preset dredge_fast --motion-temporal-bin-s 2.0 --min-duration-for-preprocessing 120 --n-jobs -1'
+params.capsule_spikesort_kilosort_4_ecephys_7_args = '--raise-if-fails --min-drift-channels 64'
+params.capsule_aind_ephys_curation_2_args = '--noise-strategy unitrefine'
+params.capsule_aind_ephys_results_collector_9_args = '--process-name sorted-ks4'
+params.capsule_nwb_packaging_ecephys_capsule_12_args = '--backend zarr --stub-seconds 10 --lfp_temporal_factor 2 --lfp_spatial_factor 4 --lfp_highpass_freq_min 0'
+params.capsule_nwb_packaging_units_11_args = '--stub-units 10'
+params.capsule_quality_control_ecephys_13_args = '--min-duration-allow-failed 300'
+
 // AIND sessions are staged per stream: each task gets only the zarr(s) its job reads, placed where the
 // relative paths embedded in job and recording JSONs expect them. Any other layout is staged whole.
 compressedRel = 'ecephys/ecephys_compressed'
