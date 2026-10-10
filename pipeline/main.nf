@@ -506,7 +506,7 @@ process capsule_nwb_packaging_units_11 {
 	else
 		git -c credential.helper= clone "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-5347545.git" capsule-repo
 	fi
-	git -C capsule-repo checkout 82c25a0669a6755a82f4577ace6342af9ba2c5f2 --quiet
+	git -C capsule-repo checkout 456eb8a790dd37bc5fea2cf706457fb6f8ecca3a --quiet
 	mv capsule-repo/code capsule/code && ln -s \$PWD/capsule/code /code
 	rm -rf capsule-repo
 
