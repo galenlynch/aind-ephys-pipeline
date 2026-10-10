@@ -3,13 +3,26 @@
 
 params.ecephys_url = 's3://aind-ephys-data/ecephys_713593_2024-02-08_14-10-37'
 
+// Sorter comparison: 'kilosort4' or 'dartsort'. Both sort with one DARTsort DREDGE motion estimate: DARTsort uses it
+// natively, KS4 sorts traces interpolated with it and its own drift correction off.
+params.sorter = 'kilosort4'
+if (!(params.sorter in ['kilosort4', 'dartsort'])) {
+	error "params.sorter must be 'kilosort4' or 'dartsort', got '${params.sorter}'"
+}
+
+// Unreleased Code Ocean copies the comparison runs: capsule id, git slug and the commit to run
+preprocessingCopy = [id: 'TODO-preprocessing-capsule-id', slug: 'TODO', commit: 'TODO']
+kilosort4Copy = [id: 'TODO-kilosort4-capsule-id', slug: 'TODO', commit: 'TODO']
+dartsortCopy = [id: 'TODO-dartsort-capsule-id', slug: 'TODO', commit: 'TODO']
+
 // An unlocked main.nf gets no per-capsule App Panel args, so each step's settings live here as named flags
 // (the production pipeline's values); override any of them with --<param> on the nextflow command line.
 params.capsule_aind_ephys_job_dispatch_4_args = '--input aind --min-recording-duration -1'
-params.capsule_aind_ephys_preprocessing_1_args = '--denoising cmr --filter-type highpass --max-bad-channel-fraction 0.5 --motion compute --motion-preset dredge_fast --motion-temporal-bin-s 2.0 --min-duration-for-preprocessing 120 --n-jobs -1'
-params.capsule_spikesort_kilosort_4_ecephys_7_args = '--raise-if-fails --min-drift-channels 64'
+params.capsule_aind_ephys_preprocessing_1_args = '--denoising cmr --filter-type bandpass --max-bad-channel-fraction 0.5 --motion compute --motion-preset dredge_fast --motion-temporal-bin-s 2.0 --min-duration-for-preprocessing 120 --n-jobs -1'
+params.capsule_spikesort_kilosort_4_ecephys_7_args = '--raise-if-fails --min-drift-channels 64 --motion-source dartsort'
+params.capsule_spikesort_dartsort_ecephys_7_args = '--raise-if-fails --min-drift-channels 64 --do-not-use-preprocessing-motion --matching-threshold 6 --initial-threshold 9 --subsampling-presence 0.1 --whiten-temporal-length 3 --postprocessing agglomerate_and_clean'
 params.capsule_aind_ephys_curation_2_args = '--noise-strategy unitrefine'
-params.capsule_aind_ephys_results_collector_9_args = '--process-name sorted-ks4'
+params.capsule_aind_ephys_results_collector_9_args = "--process-name sorted-${params.sorter == 'dartsort' ? 'dartsort' : 'ks4'}"
 params.capsule_nwb_packaging_ecephys_capsule_12_args = '--backend zarr --stub-seconds 10 --lfp_temporal_factor 2 --lfp_spatial_factor 4 --lfp_highpass_freq_min 0'
 params.capsule_nwb_packaging_units_11_args = '--stub-units 10'
 params.capsule_quality_control_ecephys_13_args = '--min-duration-allow-failed 300'
@@ -91,10 +104,12 @@ process capsule_aind_ephys_job_dispatch_4 {
 }
 
 // capsule - Preprocess Ecephys
-// Preprocess Ecephys: Code Ocean capsule v15.0, source https://github.com/AllenNeuralDynamics/aind-ephys-preprocessing
+// Preprocess Ecephys (bandpass bad-channel detection): unreleased Code Ocean capsule, v15.0 plus bandpass filtering and
+// SpikeInterface's outside-channel threshold, source https://github.com/galenlynch/aind-ephys-preprocessing branch
+// exp/fix-bad-channel-detection
 process capsule_aind_ephys_preprocessing_1 {
-	tag 'capsule-0331265'
-	container "$REGISTRY_HOST/published/49b76676-d1f6-4202-9473-c763b2b83563:v15"
+	tag "capsule-${preprocessingCopy.slug}"
+	container "$REGISTRY_HOST/capsule/${preprocessingCopy.id}"
 
 	cpus 16
 	memory '60 GB'
@@ -111,7 +126,7 @@ process capsule_aind_ephys_preprocessing_1 {
 	#!/usr/bin/env bash
 	set -e
 
-	export CO_CAPSULE_ID=49b76676-d1f6-4202-9473-c763b2b83563
+	export CO_CAPSULE_ID=${preprocessingCopy.id}
 	export CO_CPUS=16
 	export CO_MEMORY=64424509440
 
@@ -122,10 +137,11 @@ process capsule_aind_ephys_preprocessing_1 {
 
 	echo "[${task.tag}] cloning git repo..."
 	if [[ "\$(printf '%s\n' "2.20.0" "\$(git version | awk '{print \$3}')" | sort -V | head -n1)" = "2.20.0" ]]; then
-		git -c credential.helper= clone --filter=tree:0 --branch v15.0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-0331265.git" capsule-repo
+		git -c credential.helper= clone --filter=tree:0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-${preprocessingCopy.slug}.git" capsule-repo
 	else
-		git -c credential.helper= clone --branch v15.0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-0331265.git" capsule-repo
+		git -c credential.helper= clone "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-${preprocessingCopy.slug}.git" capsule-repo
 	fi
+	git -C capsule-repo checkout ${preprocessingCopy.commit} --quiet
 	mv capsule-repo/code capsule/code && ln -s \$PWD/capsule/code /code
 	rm -rf capsule-repo
 
@@ -198,10 +214,11 @@ process capsule_nwb_packaging_ecephys_capsule_12 {
 }
 
 // capsule - Spikesort Kilosort4 Ecephys
-// Spikesort Kilosort4 Ecephys: Code Ocean capsule v13.0, source https://github.com/AllenNeuralDynamics/aind-ephys-spikesort-kilosort4
+// Spikesort Kilosort4 Ecephys (motion source): unreleased Code Ocean capsule, v13.0 plus sorting on traces corrected with
+// an external motion estimate, source https://github.com/galenlynch/aind-ephys-spikesort-kilosort4 branch feat/motion-source
 process capsule_spikesort_kilosort_4_ecephys_7 {
-	tag 'capsule-4110207'
-	container "$REGISTRY_HOST/published/3372ccfd-0388-4e1e-8c4f-46b470fcf871:v13"
+	tag "capsule-${kilosort4Copy.slug}"
+	container "$REGISTRY_HOST/capsule/${kilosort4Copy.id}"
 
 	cpus 16
 	memory '60 GB'
@@ -219,7 +236,7 @@ process capsule_spikesort_kilosort_4_ecephys_7 {
 	#!/usr/bin/env bash
 	set -e
 
-	export CO_CAPSULE_ID=3372ccfd-0388-4e1e-8c4f-46b470fcf871
+	export CO_CAPSULE_ID=${kilosort4Copy.id}
 	export CO_CPUS=16
 	export CO_MEMORY=64424509440
 
@@ -230,10 +247,11 @@ process capsule_spikesort_kilosort_4_ecephys_7 {
 
 	echo "[${task.tag}] cloning git repo..."
 	if [[ "\$(printf '%s\n' "2.20.0" "\$(git version | awk '{print \$3}')" | sort -V | head -n1)" = "2.20.0" ]]; then
-		git -c credential.helper= clone --filter=tree:0 --branch v13.0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-4110207.git" capsule-repo
+		git -c credential.helper= clone --filter=tree:0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-${kilosort4Copy.slug}.git" capsule-repo
 	else
-		git -c credential.helper= clone --branch v13.0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-4110207.git" capsule-repo
+		git -c credential.helper= clone "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-${kilosort4Copy.slug}.git" capsule-repo
 	fi
+	git -C capsule-repo checkout ${kilosort4Copy.commit} --quiet
 	mv capsule-repo/code capsule/code && ln -s \$PWD/capsule/code /code
 	rm -rf capsule-repo
 
@@ -241,6 +259,63 @@ process capsule_spikesort_kilosort_4_ecephys_7 {
 	cd capsule/code
 	chmod +x run
 	./run ${params.capsule_spikesort_kilosort_4_ecephys_7_args}
+
+	echo "[${task.tag}] completed!"
+	"""
+
+	stub:
+	"""
+	stub_capsule.sh spikesort
+	"""
+}
+
+// capsule - Spikesort DARTsort Ecephys
+// Spikesort DARTsort Ecephys (keep motion): unreleased Code Ocean capsule, the capsule the DARTsort pipeline runs plus
+// keeping DARTsort's motion estimate, source https://github.com/galenlynch/aind-ephys-spikesort-dartsort branch
+// feat/keep-dartsort-motion
+process capsule_spikesort_dartsort_ecephys_7 {
+	tag "capsule-${dartsortCopy.slug}"
+	container "$REGISTRY_HOST/capsule/${dartsortCopy.id}"
+
+	cpus 16
+	memory '60 GB'
+	accelerator 1
+	label 'gpu'
+
+	input:
+	tuple val(meta), path(preprocessing_results, stageAs: 'capsule/data/*')
+
+	output:
+	tuple val(meta), path('capsule/results/*'), emit: results
+
+	script:
+	"""
+	#!/usr/bin/env bash
+	set -e
+
+	export CO_CAPSULE_ID=${dartsortCopy.id}
+	export CO_CPUS=16
+	export CO_MEMORY=64424509440
+
+	mkdir -p capsule
+	mkdir -p capsule/data && ln -s \$PWD/capsule/data /data
+	mkdir -p capsule/results && ln -s \$PWD/capsule/results /results
+	mkdir -p capsule/scratch && ln -s \$PWD/capsule/scratch /scratch
+
+	echo "[${task.tag}] cloning git repo..."
+	if [[ "\$(printf '%s\n' "2.20.0" "\$(git version | awk '{print \$3}')" | sort -V | head -n1)" = "2.20.0" ]]; then
+		git -c credential.helper= clone --filter=tree:0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-${dartsortCopy.slug}.git" capsule-repo
+	else
+		git -c credential.helper= clone "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-${dartsortCopy.slug}.git" capsule-repo
+	fi
+	git -C capsule-repo checkout ${dartsortCopy.commit} --quiet
+	mv capsule-repo/code capsule/code && ln -s \$PWD/capsule/code /code
+	rm -rf capsule-repo
+
+	echo "[${task.tag}] running capsule..."
+	cd capsule/code
+	chmod +x run
+	./run ${params.capsule_spikesort_dartsort_ecephys_7_args}
 
 	echo "[${task.tag}] completed!"
 	"""
@@ -666,7 +741,12 @@ workflow {
 	stream_zarrs = jobs.map { meta, job_json, ap_zarrs, lfp_zarrs -> [meta, ap_zarrs + lfp_zarrs] }
 
 	preprocessing_out = capsule_aind_ephys_preprocessing_1(streams, session_files_ch)
-	spikesort_out = capsule_spikesort_kilosort_4_ecephys_7(preprocessing_out.results)
+	def spikesort_out
+	if (params.sorter == 'dartsort') {
+		spikesort_out = capsule_spikesort_dartsort_ecephys_7(preprocessing_out.results)
+	} else {
+		spikesort_out = capsule_spikesort_kilosort_4_ecephys_7(preprocessing_out.results)
+	}
 
 	postprocessing_out = capsule_aind_ephys_postprocessing_5(
 		streams.join(preprocessing_out.results, failOnMismatch: true).join(spikesort_out.results, failOnMismatch: true),
