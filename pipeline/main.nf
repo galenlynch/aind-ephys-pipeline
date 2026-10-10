@@ -40,17 +40,14 @@ def pick(files, Closure keep) {
 }
 
 // capsule - Job Dispatch Ecephys
-// Job Dispatch Ecephys: Code Ocean capsule v12.0, source https://github.com/AllenNeuralDynamics/aind-ephys-job-dispatch
+// Job Dispatch Ecephys (S3 Read): unreleased Code Ocean capsule, v12.0 plus reading the session from --ecephys-url,
+// source https://github.com/galenlynch/aind-ephys-job-dispatch branch feat/remote-session-v12
 process capsule_aind_ephys_job_dispatch_4 {
-	tag 'capsule-6237826'
-	container "$REGISTRY_HOST/published/d75d79c4-8f21-4d17-83ec-13b2a43dcaa0:v12"
+	tag 'capsule-7257126'
+	container "$REGISTRY_HOST/capsule/fda4b564-5d43-47cd-ad4f-f98074ad6afa"
 
 	cpus 4
 	memory '30 GB'
-
-	input:
-	path session_files, stageAs: 'capsule/data/ecephys_session/*'
-	path session_zarrs, stageAs: zarrStage
 
 	output:
 	path 'capsule/results/*', emit: results
@@ -60,7 +57,7 @@ process capsule_aind_ephys_job_dispatch_4 {
 	#!/usr/bin/env bash
 	set -e
 
-	export CO_CAPSULE_ID=d75d79c4-8f21-4d17-83ec-13b2a43dcaa0
+	export CO_CAPSULE_ID=fda4b564-5d43-47cd-ad4f-f98074ad6afa
 	export CO_CPUS=4
 	export CO_MEMORY=32212254720
 
@@ -71,24 +68,25 @@ process capsule_aind_ephys_job_dispatch_4 {
 
 	echo "[${task.tag}] cloning git repo..."
 	if [[ "\$(printf '%s\n' "2.20.0" "\$(git version | awk '{print \$3}')" | sort -V | head -n1)" = "2.20.0" ]]; then
-		git -c credential.helper= clone --filter=tree:0 --branch v12.0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-6237826.git" capsule-repo
+		git -c credential.helper= clone --filter=tree:0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-7257126.git" capsule-repo
 	else
-		git -c credential.helper= clone --branch v12.0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-6237826.git" capsule-repo
+		git -c credential.helper= clone "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-7257126.git" capsule-repo
 	fi
+	git -C capsule-repo checkout 4dc1c8ec3ebacbededb1b62b2499a95c8706989a --quiet
 	mv capsule-repo/code capsule/code && ln -s \$PWD/capsule/code /code
 	rm -rf capsule-repo
 
 	echo "[${task.tag}] running capsule..."
 	cd capsule/code
 	chmod +x run
-	./run ${params.capsule_aind_ephys_job_dispatch_4_args}
+	./run ${params.capsule_aind_ephys_job_dispatch_4_args} --ecephys-url ${params.ecephys_url}
 
 	echo "[${task.tag}] completed!"
 	"""
 
 	stub:
 	"""
-	stub_capsule.sh job_dispatch
+	stub_capsule.sh job_dispatch ${params.ecephys_url}
 	"""
 }
 
@@ -468,10 +466,11 @@ process capsule_aind_ephys_results_collector_9 {
 }
 
 // capsule - NWB Packaging Units
-// NWB Packaging Units: Code Ocean capsule v17.0, source https://github.com/AllenNeuralDynamics/aind-units-nwb
+// NWB Packaging Units (S3 Read): unreleased Code Ocean capsule, v17.0 plus reading recordings from --ecephys-url,
+// source https://github.com/galenlynch/aind-units-nwb branch feat/remote-session-v17
 process capsule_nwb_packaging_units_11 {
-	tag 'capsule-5841110'
-	container "$REGISTRY_HOST/published/b9333ffe-ae7c-4b67-882f-ea71054889dd:v17"
+	tag 'capsule-5347545'
+	container "$REGISTRY_HOST/capsule/e420e6ec-0105-4cd6-a417-808d57d2d2bd"
 
 	cpus 8
 	memory '60 GB'
@@ -480,8 +479,6 @@ process capsule_nwb_packaging_units_11 {
 
 	input:
 	path session_files, stageAs: 'capsule/data/ecephys_session/*'
-	// opened for channel metadata and times only; no traces are read
-	path session_zarrs, stageAs: zarrStage
 	path job_dispatch_results, stageAs: 'capsule/data/*'
 	path results_data, stageAs: 'capsule/data/*'
 	path nwb_ecephys_results, stageAs: 'capsule/data/*'
@@ -494,7 +491,7 @@ process capsule_nwb_packaging_units_11 {
 	#!/usr/bin/env bash
 	set -e
 
-	export CO_CAPSULE_ID=b9333ffe-ae7c-4b67-882f-ea71054889dd
+	export CO_CAPSULE_ID=e420e6ec-0105-4cd6-a417-808d57d2d2bd
 	export CO_CPUS=8
 	export CO_MEMORY=64424509440
 
@@ -505,17 +502,18 @@ process capsule_nwb_packaging_units_11 {
 
 	echo "[${task.tag}] cloning git repo..."
 	if [[ "\$(printf '%s\n' "2.20.0" "\$(git version | awk '{print \$3}')" | sort -V | head -n1)" = "2.20.0" ]]; then
-		git -c credential.helper= clone --filter=tree:0 --branch v17.0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-5841110.git" capsule-repo
+		git -c credential.helper= clone --filter=tree:0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-5347545.git" capsule-repo
 	else
-		git -c credential.helper= clone --branch v17.0 "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-5841110.git" capsule-repo
+		git -c credential.helper= clone "https://\$GIT_ACCESS_TOKEN@\$GIT_HOST/capsule-5347545.git" capsule-repo
 	fi
+	git -C capsule-repo checkout 82c25a0669a6755a82f4577ace6342af9ba2c5f2 --quiet
 	mv capsule-repo/code capsule/code && ln -s \$PWD/capsule/code /code
 	rm -rf capsule-repo
 
 	echo "[${task.tag}] running capsule..."
 	cd capsule/code
 	chmod +x run
-	./run ${params.capsule_nwb_packaging_units_11_args}
+	./run ${params.capsule_nwb_packaging_units_11_args} --ecephys-url ${params.ecephys_url}
 
 	echo "[${task.tag}] completed!"
 	"""
@@ -648,9 +646,8 @@ workflow {
 	def qc_session_files_ch = Channel.value(
 		session_files + (by_stream && behavior_dir.exists() ? [behavior_dir] : [])
 	)
-	def all_zarrs_ch = Channel.value(by_stream ? zarr_root.listFiles().findAll { it.name.endsWith('.zarr') } : [])
 
-	job_dispatch_out = capsule_aind_ephys_job_dispatch_4(session_files_ch, all_zarrs_ch)
+	job_dispatch_out = capsule_aind_ephys_job_dispatch_4()
 	job_jsons = job_dispatch_out.results.flatten().filter { it.name.startsWith('job') && it.name.endsWith('.json') }
 
 	// [meta, job_json, AP zarrs, LFP zarrs]; meta is never modified, so joins can key on it
@@ -730,7 +727,6 @@ workflow {
 	nwb_ecephys_out = capsule_nwb_packaging_ecephys_capsule_12(session_files_ch, nwb_zarrs, job_jsons.collect())
 	capsule_nwb_packaging_units_11(
 		session_files_ch,
-		nwb_zarrs,
 		job_jsons.collect(),
 		collector_items.map { items -> items.findAll { it.name in ['postprocessed', 'spikesorted'] } },
 		nwb_ecephys_out.results.collect()
