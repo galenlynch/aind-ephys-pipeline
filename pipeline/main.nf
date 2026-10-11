@@ -5,7 +5,7 @@ params.ecephys_url = 's3://aind-ephys-data/ecephys_713593_2024-02-08_14-10-37'
 
 // Sorter comparison: 'kilosort4' or 'dartsort'. Both sort with one DARTsort DREDGE motion estimate: DARTsort uses it
 // natively, KS4 sorts traces interpolated with it and its own drift correction off.
-params.sorter = 'kilosort4'
+params.sorter = 'dartsort'
 if (!(params.sorter in ['kilosort4', 'dartsort'])) {
 	error "params.sorter must be 'kilosort4' or 'dartsort', got '${params.sorter}'"
 }
