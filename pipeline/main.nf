@@ -20,7 +20,7 @@ dartsortCopy = [id: '26135f78-0c7e-4d95-8bf0-305759b0204e', slug: '9790836', com
 params.capsule_aind_ephys_job_dispatch_4_args = '--input aind --min-recording-duration -1'
 params.capsule_aind_ephys_preprocessing_1_args = '--denoising cmr --filter-type bandpass --max-bad-channel-fraction 0.5 --motion compute --motion-preset dredge_fast --motion-temporal-bin-s 2.0 --min-duration-for-preprocessing 120 --n-jobs -1'
 params.capsule_spikesort_kilosort_4_ecephys_7_args = '--raise-if-fails --min-drift-channels 64 --motion-source dartsort'
-params.capsule_spikesort_dartsort_ecephys_7_args = '--raise-if-fails --min-drift-channels 64 --do-not-use-preprocessing-motion --matching-threshold 6 --initial-threshold 9 --subsampling-presence 0.1 --whiten-temporal-length 3 --postprocessing agglomerate_and_clean'
+params.capsule_spikesort_dartsort_ecephys_7_args = 'false --min-drift-channels 64 --do-not-use-preprocessing-motion --matching-threshold 6 --initial-threshold 9 --subsampling-presence 0.1 --whiten-temporal-length 3 --postprocessing agglomerate_and_clean'
 params.capsule_aind_ephys_curation_2_args = '--noise-strategy unitrefine'
 params.capsule_aind_ephys_results_collector_9_args = "--process-name sorted-${params.sorter == 'dartsort' ? 'dartsort' : 'ks4'}"
 params.capsule_nwb_packaging_ecephys_capsule_12_args = '--backend zarr --stub-seconds 10 --lfp_temporal_factor 2 --lfp_spatial_factor 4 --lfp_highpass_freq_min 0'
