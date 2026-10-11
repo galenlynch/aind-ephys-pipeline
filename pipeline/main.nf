@@ -365,6 +365,13 @@ process capsule_aind_ephys_postprocessing_5 {
 	mv capsule-repo/code capsule/code && ln -s \$PWD/capsule/code /code
 	rm -rf capsule-repo
 
+	# a failed sort can leave an empty sorting folder, which does not survive staging; postprocessing
+	# raises on a missing folder but writes its placeholder for an unloadable one
+	sorted_folder="capsule/data/spikesorted_${meta.id}"
+	if [[ ! -e "\$sorted_folder" ]]; then
+		mkdir -p "\$sorted_folder" && echo "Spike sorting error" > "\$sorted_folder/error.txt"
+	fi
+
 	echo "[${task.tag}] running capsule..."
 	cd capsule/code
 	chmod +x run
