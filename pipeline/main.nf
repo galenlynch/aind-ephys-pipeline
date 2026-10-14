@@ -12,7 +12,7 @@ if (!(params.sorter in ['kilosort4', 'dartsort'])) {
 
 // Unreleased Code Ocean copies the comparison runs: capsule id, git slug and the commit to run
 preprocessingCopy = [id: 'e962bef4-c4fc-44ea-9bdf-d6ea735a40c3', slug: '5226992', commit: '9ac5506539ea0e3b424ce2edcc45c1c89750a23e']
-kilosort4Copy = [id: '5c3afd30-fbab-4304-a9a9-e438a3b01e2e', slug: '9950100', commit: '59541608f05d29cf4a19fe0c6a5b5819c75d20d5']
+kilosort4Copy = [id: '5c3afd30-fbab-4304-a9a9-e438a3b01e2e', slug: '9950100', commit: '5e9511f2458e57cf7e8c85ff5fc1f8829231f7ce']
 dartsortCopy = [id: '26135f78-0c7e-4d95-8bf0-305759b0204e', slug: '9790836', commit: '06fb8b5bf64f04b58bfcbaf8c54556fffdb3c30f']
 
 // An unlocked main.nf gets no per-capsule App Panel args, so each step's settings live here as named flags
