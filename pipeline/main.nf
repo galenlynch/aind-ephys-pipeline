@@ -3,8 +3,8 @@
 
 params.ecephys_url = 's3://aind-ephys-data/ecephys_713593_2024-02-08_14-10-37'
 
-// Sorter comparison: 'kilosort4' or 'dartsort'. Both sort with one DARTsort DREDGE motion estimate: DARTsort uses it
-// natively, KS4 sorts traces interpolated with it and its own drift correction off.
+// Sorter comparison: 'kilosort4' or 'dartsort'. DARTsort uses its own DREDGE motion estimate; KS4 uses its own drift
+// correction, so its run can be compared with one that sorted on traces corrected with DARTsort's estimate.
 params.sorter = 'kilosort4'
 if (!(params.sorter in ['kilosort4', 'dartsort'])) {
 	error "params.sorter must be 'kilosort4' or 'dartsort', got '${params.sorter}'"
@@ -19,10 +19,10 @@ dartsortCopy = [id: '26135f78-0c7e-4d95-8bf0-305759b0204e', slug: '9790836', com
 // (the production pipeline's values); override any of them with --<param> on the nextflow command line.
 params.capsule_aind_ephys_job_dispatch_4_args = '--input aind --min-recording-duration -1'
 params.capsule_aind_ephys_preprocessing_1_args = '--denoising cmr --filter-type bandpass --max-bad-channel-fraction 0.5 --motion compute --motion-preset dredge_fast --motion-temporal-bin-s 2.0 --min-duration-for-preprocessing 120 --n-jobs -1'
-params.capsule_spikesort_kilosort_4_ecephys_7_args = '--raise-if-fails --min-drift-channels 64 --motion-source dartsort'
+params.capsule_spikesort_kilosort_4_ecephys_7_args = '--raise-if-fails --min-drift-channels 64 --motion-source kilosort'
 params.capsule_spikesort_dartsort_ecephys_7_args = '--raise-if-fails --min-drift-channels 64 --do-not-use-preprocessing-motion --matching-threshold 6 --initial-threshold 9 --subsampling-presence 0.1 --whiten-temporal-length 3 --postprocessing agglomerate_and_clean'
 params.capsule_aind_ephys_curation_2_args = '--noise-strategy unitrefine'
-params.capsule_aind_ephys_results_collector_9_args = "--process-name sorted-${params.sorter == 'dartsort' ? 'dartsort' : 'ks4'}"
+params.capsule_aind_ephys_results_collector_9_args = "--process-name sorted-${params.sorter == 'dartsort' ? 'dartsort' : 'ks4-own-motion'}"
 params.capsule_nwb_packaging_ecephys_capsule_12_args = '--backend zarr --stub-seconds 10 --lfp_temporal_factor 2 --lfp_spatial_factor 4 --lfp_highpass_freq_min 0'
 params.capsule_nwb_packaging_units_11_args = '--stub-units 10'
 params.capsule_quality_control_ecephys_13_args = '--min-duration-allow-failed 300'
