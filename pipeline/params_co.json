@@ -20,7 +20,7 @@
             "progress_bar": false,
             "mp_context": "spawn"
         },
-        "filter_type": "highpass",
+        "filter_type": "bandpass",
         "remove_out_channels": true,
         "remove_bad_channels": true,
         "min_preprocessing_duration": 120,
@@ -41,7 +41,7 @@
                 "method": "coherence+psd",
                 "dead_channel_threshold": -0.5,
                 "noisy_channel_threshold": 1.0,
-                "outside_channel_threshold": -0.3,
+                "outside_channel_threshold": -0.75,
                 "outside_channels_location": "top",
                 "n_neighbors": 11,
                 "channel_filters": ["noise", "dead", "out"],
